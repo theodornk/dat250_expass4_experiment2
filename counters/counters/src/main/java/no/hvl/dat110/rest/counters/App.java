@@ -4,18 +4,19 @@ import static spark.Spark.after;
 import static spark.Spark.get;
 import static spark.Spark.port;
 import static spark.Spark.put;
+import static spark.Spark.delete;
+import static spark.Spark.post;
 
 import com.google.gson.Gson;
 
-/**
- * Hello world!
- *
- */
+import java.util.*;
+
+
 public class App {
-	
-	static Counters counters = null;
-	
+
 	public static void main(String[] args) {
+
+		HashMap<Integer, Todo> todosMap = new HashMap<Integer, Todo>();
 
 		if (args.length > 0) {
 			port(Integer.parseInt(args[0]));
@@ -23,25 +24,40 @@ public class App {
 			port(8080);
 		}
 
-		counters = new Counters();
-		
+
 		after((req, res) -> {
   		  res.type("application/json");
   		});
-		
-		get("/hello", (req, res) -> "Hello World!");
-		
-        get("/counters", (req, res) -> counters.toJson());
-               
-        put("/counters", (req,res) -> {
-        
-        	Gson gson = new Gson();
-        	
-        	counters = gson.fromJson(req.body(), Counters.class);
-        
-            return counters.toJson();
-        	
-        });
+
+		get("/todo/:id", (req, res) -> {
+			Gson gson = new Gson();
+			return todosMap.get(Integer.parseInt(req.params("id"))).toJson();
+		});
+
+		get("/todo", (req,res) -> {
+			Gson gson = new Gson();
+			return gson.toJson(todosMap);
+		});
+
+		put("/todo/:id", (req,res) -> {
+			Gson gson = new Gson();
+			todosMap.put(Integer.parseInt(req.params("id")), gson.fromJson(req.body(), Todo.class));
+			return todosMap.get(Integer.parseInt(req.params("id"))).toJson();
+		});
+
+		post("/todo", (req,res) -> {
+			Gson gson = new Gson();
+			todosMap.put(todosMap.size(), gson.fromJson(req.body(), Todo.class));
+			return "K";
+		});
+
+		delete("/todo/:id", (req, res) -> {
+			Gson gson = new Gson();
+			todosMap.remove(Integer.parseInt(req.params("id")));
+			return gson.toJson(todosMap);
+		});
+
+
     }
     
 }
